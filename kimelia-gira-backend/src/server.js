@@ -5,6 +5,8 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 
+const authRoutes = require('./routes/authRoutes');
+
 // Load env vars
 dotenv.config();
 
@@ -22,6 +24,8 @@ if (process.env.NODE_ENV === 'development') {
 app.get('/', (req, res) => {
     res.json({ message: "Welcome to Kimelia Gira API - PropTech Platform" });
 });
+
+app.use('/api/v1/auth', authRoutes);
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
