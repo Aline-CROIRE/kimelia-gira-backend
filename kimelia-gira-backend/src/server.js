@@ -14,6 +14,7 @@ dotenv.config();
 const authRoutes = require('./routes/authRoutes');
 const propertyRoutes = require('./routes/propertyRoutes');
 const valuationRoutes = require('./routes/valuationRoutes');
+const adminRoutes = require('./routes/adminRoutes'); // New import
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/properties', propertyRoutes);
 app.use('/api/v1/valuation', valuationRoutes);
+app.use('/api/v1/admin', adminRoutes); // New mount
 
 // Basic Route
 app.get('/', (req, res) => {
