@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const UserSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true },
-    password: { type: String, required: true, select: false }, // 'select: false' hides password in queries
+    password: { type: String, required: true, select: false },
     role: { 
         type: String, 
         enum: ['buyer', 'owner', 'renter', 'admin'], 
@@ -15,6 +15,7 @@ const UserSchema = new mongoose.Schema({
         enum: ['en', 'rw', 'fr'], 
         default: 'en' 
     },
+    fcmToken: { type: String, default: null }, // For Push Notifications
     profileImage: { type: String, default: '' },
     isVerified: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
