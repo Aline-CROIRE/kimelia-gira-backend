@@ -3,20 +3,21 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const mongoose = require('mongoose');
 const passport = require('passport');
 const rateLimit = require('express-rate-limit');
 const swaggerUi = require('swagger-ui-express');
+
+// Configuration Imports
+dotenv.config();
+const connectDB = require('./config/db');
 const swaggerSpecs = require('./config/swagger');
 const errorHandler = require('./middleware/errorMiddleware');
-
-// Load env vars
-dotenv.config();
-
-// Passport Config
 require('./config/passport');
 
-// Route files
+// Connect to Database
+connectDB();
+
+// Route Imports
 const authRoutes = require('./routes/authRoutes');
 const propertyRoutes = require('./routes/propertyRoutes');
 const valuationRoutes = require('./routes/valuationRoutes');
@@ -26,7 +27,7 @@ const recommendationRoutes = require('./routes/recommendationRoutes');
 
 const app = express();
 
-// 1. Security Middlewares
+// Security Middlewares
 app.use(express.json());
 app.use(cors());
 app.use(helmet({
@@ -42,24 +43,21 @@ app.use(helmet({
     crossOriginEmbedderPolicy: false,
 }));
 
-// Rate Limiting: Max 100 requests per 15 minutes
+// Rate Limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
-    max: 100,
-    message: "Too many requests from this IP, please try again after 15 minutes"
+    max: 100
 });
 app.use('/api/', limiter);
 
-// 2. Auth & Logging
+// Initialization
 app.use(passport.initialize());
-if (process.env.NODE_ENV === 'development') {
-    app.use(morgan('dev'));
-}
+if (process.env.NODE_ENV === 'development') { app.use(morgan('dev')); }
 
-// 3. Documentation
+// API Docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
-// 4. Mount Routes
+// Mount Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/properties', propertyRoutes);
 app.use('/api/v1/valuation', valuationRoutes);
@@ -67,13 +65,11 @@ app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/interactions', interactionRoutes);
 app.use('/api/v1/recommendations', recommendationRoutes);
 
-// 5. Global Error Handler (Must be after routes)
-app.use(errorHandler);
+// Welcome Route
+app.get('/', (req, res) => res.json({ message: "Kimelia Gira API is LIVE" }));
 
-// Database Connection
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('✅ Kimelia Gira Backend Ready...'))
-    .catch(err => console.error('❌ DB Error:', err.message));
+// Global Error Handler
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
