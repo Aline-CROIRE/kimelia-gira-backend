@@ -1,5 +1,6 @@
 const express = require('express');
-const { register, login } = require('../controllers/authController');
+const { register, login, googleAuthSuccess } = require('../controllers/authController');
+const passport = require('passport');
 const router = express.Router();
 
 /**
@@ -8,21 +9,6 @@ const router = express.Router();
  *   post:
  *     summary: Register a new user
  *     tags: [Authentication]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name: { type: string }
- *               email: { type: string }
- *               password: { type: string }
- *               role: { type: string, enum: [buyer, owner, renter, admin] }
- *               language: { type: string, enum: [en, rw, fr] }
- *     responses:
- *       201:
- *         description: User created
  */
 router.post('/register', register);
 
@@ -32,19 +18,18 @@ router.post('/register', register);
  *   post:
  *     summary: Login user
  *     tags: [Authentication]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email: { type: string }
- *               password: { type: string }
- *     responses:
- *       200:
- *         description: Login success
  */
 router.post('/login', login);
 
-module.exports = router; 
+// @desc    Auth with Google
+// @route   GET /api/v1/auth/google
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+// @desc    Google auth callback
+// @route   GET /api/v1/auth/google/callback
+router.get('/google/callback', 
+    passport.authenticate('google', { session: false, failureRedirect: '/login' }),
+    googleAuthSuccess
+);
+
+module.exports = router;

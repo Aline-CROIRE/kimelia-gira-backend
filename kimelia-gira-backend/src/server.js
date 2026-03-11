@@ -4,11 +4,15 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
+const passport = require('passport'); // New
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./config/swagger');
 
 // Load env vars
 dotenv.config();
+
+// Passport Config
+require('./config/passport'); // New
 
 // Route files
 const authRoutes = require('./routes/authRoutes');
@@ -19,21 +23,16 @@ const interactionRoutes = require('./routes/interactionRoutes');
 
 const app = express();
 
-// Body parser
 app.use(express.json());
-
-// Enable CORS
 app.use(cors());
-
-// Set security headers
 app.use(helmet());
+app.use(passport.initialize()); // New
 
-// Dev logging middleware
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
 
-// Swagger Documentation Route
+// Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // Mount routers
@@ -43,33 +42,14 @@ app.use('/api/v1/valuation', valuationRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/interactions', interactionRoutes);
 
-// Health Check / Welcome Route
 app.get('/', (req, res) => {
-    res.json({ 
-        success: true,
-        message: "Welcome to Kimelia Gira API", 
-        version: "1.0.0",
-        documentation: "/api-docs" 
-    });
+    res.json({ success: true, message: "Welcome to Kimelia Gira API" });
 });
 
-// Database Connection
+// DB Connection
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('✅ MongoDB Connected Successfully...'))
-    .catch(err => {
-        console.error('❌ Database connection error:', err.message);
-        process.exit(1);
-    });
+    .catch(err => console.error('❌ DB Error:', err.message));
 
 const PORT = process.env.PORT || 5000;
-
-const server = app.listen(PORT, () => {
-    console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-});
-
-// Handle unhandled promise rejections (e.g. secret keys missing)
-process.on('unhandledRejection', (err, promise) => {
-    console.log(`Error: ${err.message}`);
-    // Close server & exit process
-    server.close(() => process.exit(1));
-});
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

@@ -11,15 +11,12 @@ const generateToken = (id) => {
 exports.register = async (req, res) => {
     try {
         const { name, email, password, role, language, fcmToken } = req.body;
-
         const userExists = await User.findOne({ email });
         if (userExists) {
             return res.status(400).json({ success: false, message: t('user_exists', language) });
         }
-
         const user = await User.create({ name, email, password, role, language, fcmToken });
 
-        // Send Welcome Email
         const emailContent = getWelcomeContent(user.name, user.language);
         await sendEmail({
             email: user.email,
@@ -45,16 +42,10 @@ exports.login = async (req, res) => {
     try {
         const { email, password, fcmToken } = req.body;
         const user = await User.findOne({ email }).select('+password');
-
         if (!user || !(await user.matchPassword(password))) {
             return res.status(401).json({ success: false, message: t('auth_error', user?.language || 'en') });
         }
-
-        // Update FCM Token on login if provided
-        if (fcmToken) {
-            user.fcmToken = fcmToken;
-            await user.save();
-        }
+        if (fcmToken) { user.fcmToken = fcmToken; await user.save(); }
 
         res.status(200).json({
             success: true,
@@ -64,4 +55,17 @@ exports.login = async (req, res) => {
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
+};
+
+// @desc    OAuth Success Handler
+exports.googleAuthSuccess = (req, res) => {
+    // Generate token for the user found/created by passport
+    const token = generateToken(req.user._id);
+    
+    // In production, you would redirect to your frontend with the token
+    res.status(200).json({
+        success: true,
+        token,
+        user: req.user
+    });
 };
