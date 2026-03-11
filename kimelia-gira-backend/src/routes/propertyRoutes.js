@@ -1,15 +1,8 @@
-const express = require('express');
-const { createProperty, getProperties } = require('../controllers/propertyController');
-const { protect } = require('../middleware/authMiddleware');
-const upload = require('../config/cloudinary');
-
-const router = express.Router();
-
 /**
  * @swagger
  * /properties:
  *   post:
- *     summary: Create a new property
+ *     summary: Create a new property (AI Auto-translates Title & Description)
  *     tags: [Properties]
  *     security:
  *       - bearerAuth: []
@@ -20,32 +13,17 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             properties:
- *               "title[en]": { type: string }
- *               "title[rw]": { type: string }
- *               "title[fr]": { type: string }
- *               "description[en]": { type: string }
- *               "description[rw]": { type: string }
- *               "description[fr]": { type: string }
+ *               title: 
+ *                 type: string
+ *                 example: "Beautiful 3 bedroom house in Kigali"
+ *               description: 
+ *                 type: string
+ *                 example: "This house is located near the city center with a great view."
  *               price: { type: number }
  *               type: { type: string, enum: [sale, rent] }
- *               propertyType: { type: string, enum: [apartment, house, land] }
+ *               propertyType: { type: string, enum: [house, apartment, land] }
+ *               location: 
+ *                 type: string
+ *                 description: "JSON string of location object"
  *               images: { type: array, items: { type: string, format: binary } }
- *     responses:
- *       201:
- *         description: Property created
  */
-router.post('/', protect, upload.array('images', 5), createProperty);
-
-/**
- * @swagger
- * /properties:
- *   get:
- *     summary: Get all properties
- *     tags: [Properties]
- *     responses:
- *       200:
- *         description: List of properties
- */
-router.get('/', getProperties);
-
-module.exports = router;

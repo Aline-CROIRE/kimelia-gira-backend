@@ -1,30 +1,33 @@
 const Property = require('../models/Property');
+const autoTranslate = require('../utils/translator');
 
-// @desc    Create new property
-// @route   POST /api/v1/properties
 exports.createProperty = async (req, res) => {
     try {
-        req.body.owner = req.user.id; // From 'protect' middleware
-        
-        // Handle images if uploaded
-        if (req.files) {
-            req.body.images = req.files.map(file => file.path);
-        }
+        const { title, description, price, type, propertyType, location } = req.body;
 
-        const property = await Property.create(req.body);
-        res.status(201).json({ success: true, data: property });
+        // AI Magic: Auto-translate the title and description
+        const translatedTitle = await autoTranslate(title);
+        const translatedDescription = await autoTranslate(description);
+
+        const propertyData = {
+            owner: req.user.id,
+            title: translatedTitle,
+            description: translatedDescription,
+            price,
+            type,
+            propertyType,
+            location: JSON.parse(location), // Location usually comes as a string in multipart/form-data
+            images: req.files ? req.files.map(file => file.path) : []
+        };
+
+        const property = await Property.create(propertyData);
+
+        res.status(201).json({ 
+            success: true, 
+            message: "Property listed with AI auto-translation!",
+            data: property 
+        });
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });
-    }
-};
-
-// @desc    Get all properties (with filtering)
-// @route   GET /api/v1/properties
-exports.getProperties = async (req, res) => {
-    try {
-        const properties = await Property.find().populate('owner', 'name email');
-        res.status(200).json({ success: true, count: properties.length, data: properties });
-    } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
     }
 };

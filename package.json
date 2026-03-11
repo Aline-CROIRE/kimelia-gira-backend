@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "cloudinary": "^1.41.3",
+    "google-translate-api-next": "^0.1.0",
     "multer": "^2.1.1",
     "multer-storage-cloudinary": "^4.0.0"
   }
