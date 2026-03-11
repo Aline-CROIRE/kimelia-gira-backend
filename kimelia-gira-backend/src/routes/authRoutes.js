@@ -1,35 +1,24 @@
 const express = require('express');
 const { register, login, googleAuthSuccess } = require('../controllers/authController');
+const { getMe, updateDetails } = require('../controllers/userController');
+const { protect } = require('../middleware/authMiddleware');
+const upload = require('../config/cloudinary');
 const passport = require('passport');
+
 const router = express.Router();
 
-/**
- * @swagger
- * /auth/register:
- *   post:
- *     summary: Register a new user
- *     tags: [Authentication]
- */
 router.post('/register', register);
-
-/**
- * @swagger
- * /auth/login:
- *   post:
- *     summary: Login user
- *     tags: [Authentication]
- */
 router.post('/login', login);
 
-// @desc    Auth with Google
-// @route   GET /api/v1/auth/google
+// OAuth
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-
-// @desc    Google auth callback
-// @route   GET /api/v1/auth/google/callback
 router.get('/google/callback', 
     passport.authenticate('google', { session: false, failureRedirect: '/login' }),
     googleAuthSuccess
 );
+
+// Profile Management (Protected)
+router.get('/me', protect, getMe);
+router.put('/updatedetails', protect, upload.single('profileImage'), updateDetails);
 
 module.exports = router;
