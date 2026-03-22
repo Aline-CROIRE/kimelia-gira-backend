@@ -4,7 +4,10 @@ const {
     getFavorites, 
     sendInquiry, 
     getMyInquiries,
-    replyInquiry 
+    replyInquiry,
+    markAsRead,
+    deleteInquiry,
+    revokeMessage
 } = require('../controllers/interactionController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -12,11 +15,15 @@ const router = express.Router();
 
 router.use(protect);
 
-router.get('/chat/list/all', getMyInquiries); 
-router.get('/favs/all', getFavorites);
+router.get('/inbox', getMyInquiries); 
+router.get('/favorites', getFavorites);
 
-router.post('/favs/toggle/:propertyId', toggleFavorite);
-router.post('/chat/submit/:propertyId', sendInquiry);
-router.put('/chat/add-message/:id', replyInquiry);
+router.post('/toggle/:propertyId', toggleFavorite);
+router.post('/send/:propertyId', sendInquiry);
+router.put('/reply/:id', replyInquiry);
+router.put('/read/:id', markAsRead);
+
+router.delete('/chat/:id', deleteInquiry);
+router.delete('/chat/:id/message/:messageId', revokeMessage);
 
 module.exports = router;
